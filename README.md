@@ -11,7 +11,7 @@ Wine's own README is kept verbatim as [`README-wine.md`](README-wine.md).
 |---|---|
 | Wine 11.0 | [Wine project](https://www.winehq.org), LGPL 2.1 |
 | CrossOver 26.3 patches | [CodeWeavers](https://www.codeweavers.com) public CrossOver Wine source, LGPL 2.1 |
-| AoE IV / Rosetta patch (`dlls/ntdll/unix/aoe_*`, `loader.c`, `signal_x86_64.c`, …) | **Marc Ibrahim**, [GameToMac](https://github.com) 0.1.5 Alpha (build 36). Softfault / cached-context software-exception path and generated-code cache so that the Arxan-protected game runs under Rosetta 2. HDE64 disassembler (`aoe_hde*`) under its own BSD-style notice. |
+| AoE IV / Rosetta patch (`dlls/ntdll/unix/aoe_*`, `loader.c`, `signal_x86_64.c`, …) | **Marc Ibrahim**, [GameToMac](https://gametomac.com) 0.1.5 Alpha (build 36). Softfault / cached-context software-exception path and generated-code cache so that the Arxan-protected game runs under Rosetta 2. HDE64 disassembler (`aoe_hde*`) under its own BSD-style notice. |
 | Our changes | `ntdll: relocate near Jcc rel32 in the AoE code cache; dump refused fragments` — see `git log` |
 
 Commit 1 of this repository is the byte-identical content of

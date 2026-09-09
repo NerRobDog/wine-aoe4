@@ -25,6 +25,25 @@ static void aoe_cache_check_enabled(void)
    (getenv("AOELAB_CODE_CACHE_TEST_RING")&&!strcasecmp(name,"test_runtime_cache.exe"));
 }
 static uint64_t aoe_cache_local_stats[16],*aoe_cache_stats=aoe_cache_local_stats;
+/* NerRobDog: AOELAB_CODE_CACHE_DUMP=1 writes the first 4096 refused fragments (pc + raw bytes) to
+ * $AOELAB_COUNTERS_DIR/codecache-unkeyable-<pid>.txt for offline relocator work. */
+static int aoe_cache_dump_fd=-2;static unsigned aoe_cache_dump_left=4096;
+static void aoe_cache_dump_unkeyable(uint64_t pc,const BYTE *bytes,unsigned n)
+{
+ char line[160];int len;unsigned i;
+ if(aoe_cache_dump_fd==-2){
+  const char *directory=getenv("AOELAB_COUNTERS_DIR");char path[1024];
+  aoe_cache_dump_fd=-1;
+  if(getenv("AOELAB_CODE_CACHE_DUMP")&&directory&&directory[0]=='/'&&snprintf(path,sizeof(path),"%s/codecache-unkeyable-%u.txt",directory,(unsigned)getpid())<(int)sizeof(path))
+   aoe_cache_dump_fd=open(path,O_WRONLY|O_CREAT|O_EXCL|O_NOFOLLOW,0600);
+ }
+ if(aoe_cache_dump_fd<0||!aoe_cache_dump_left)return;
+ aoe_cache_dump_left--;
+ len=snprintf(line,sizeof(line),"%llx",(unsigned long long)pc);
+ for(i=0;i<n&&len<(int)sizeof(line)-4;i++)len+=snprintf(line+len,sizeof(line)-len," %02x",bytes[i]);
+ if(len<(int)sizeof(line)-1)line[len++]='\n';
+ if(write(aoe_cache_dump_fd,line,len)<0)aoe_cache_dump_left=0;
+}
 static __thread uint64_t aoe_cache_thread_original,aoe_cache_thread_shadow;
 static __thread unsigned aoe_cache_thread_len;
 static void aoe_cache_count(unsigned n){__atomic_fetch_add(&__atomic_load_n(&aoe_cache_stats,__ATOMIC_RELAXED)[n],1,__ATOMIC_RELAXED);}
@@ -56,7 +75,7 @@ static uint64_t aoe_cache_target(uint64_t pc)
  if(!ring||pc<ring||pc>=ring+0x1000000)return pc;
  available=32-(pc-ring)%32;
  if(virtual_uninterrupted_read_memory((void*)pc,original,available)!=available)return pc;
- if(!aoe_fragment_key(original,available,pc,&key)){aoe_cache_count(4);return pc;}
+ if(!aoe_fragment_key(original,available,pc,&key)){aoe_cache_count(4);pthread_mutex_lock(&aoe_cache_lock);aoe_cache_dump_unkeyable(pc,original,available);pthread_mutex_unlock(&aoe_cache_lock);return pc;}
  for(i=0;i<sizeof(key);i++){hash^=((BYTE*)&key)[i];hash*=1099511628211ULL;}if(!hash)hash=1;
  pthread_mutex_lock(&aoe_cache_lock);
  if(!aoe_cache_attempted)aoe_cache_init();aoe_cache_count(0);

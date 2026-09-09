@@ -1,4 +1,4 @@
-# Build environment for GameToMac-patched Wine (CX 26.3 / Wine 11.0), x86_64 under Rosetta
+# Build environment for the AoE IV-patched Wine (CX 26.3 / Wine 11.0), x86_64 under Rosetta
 MINGW=/Users/nik/ow2/dxmt/toolchains/llvm-mingw-20260826-ucrt-macos-universal
 export PATH=/usr/local/opt/bison/bin:/usr/bin:/bin:/usr/sbin:/sbin:$MINGW/bin:/usr/local/bin
 export CC='clang -arch x86_64' CXX='clang++ -arch x86_64'

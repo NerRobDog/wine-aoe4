@@ -1,7 +1,7 @@
 # wine-aoe4 — Wine for Age of Empires IV on Apple Silicon (Rosetta 2)
 
 Patched Wine source used to build the `Engine/` of the AoE IV Apple Silicon
-pack, so the pack does **not** depend on the GameToMac.app binary Engine.
+pack (`dxmt-aoe4-pack`): the pack ships an engine built from this tree, nothing prebuilt from elsewhere.
 
 Wine's own README is kept verbatim as [`README-wine.md`](README-wine.md).
 
@@ -11,25 +11,25 @@ Wine's own README is kept verbatim as [`README-wine.md`](README-wine.md).
 |---|---|
 | Wine 11.0 | [Wine project](https://www.winehq.org), LGPL 2.1 |
 | CrossOver 26.3 patches | [CodeWeavers](https://www.codeweavers.com) public CrossOver Wine source, LGPL 2.1 |
-| AoE IV / Rosetta patch (`dlls/ntdll/unix/aoe_*`, `loader.c`, `signal_x86_64.c`, …) | **Marc Ibrahim**, [GameToMac](https://gametomac.com) 0.1.5 Alpha (build 36). Softfault / cached-context software-exception path and generated-code cache so that the Arxan-protected game runs under Rosetta 2. HDE64 disassembler (`aoe_hde*`) under its own BSD-style notice. |
+| AoE IV / Rosetta patch (`dlls/ntdll/unix/aoe_*`, `loader.c`, `signal_x86_64.c`, …) | **Marc Ibrahim** (published under LGPL with his app, 0.1.5 Alpha, build 36). Softfault / cached-context software-exception path and generated-code cache so that the Arxan-protected game runs under Rosetta 2. HDE64 disassembler (`aoe_hde*`) under its own BSD-style notice. |
 | Our changes | `ntdll: relocate near Jcc rel32 in the AoE code cache; dump refused fragments` — see `git log` |
 
 Commit 1 of this repository is the byte-identical content of
 `wine-source.tar.gz` (sha256 `7be5819017b34f09670293f2be7ed9f4476734b8f42dab121a8b74e6619c92a8`)
-that ships inside GameToMac 0.1.5 Alpha at `Contents/Resources/Sources/`,
+that Marc Ibrahim published with his app (0.1.5 Alpha, `Contents/Resources/Sources/`),
 together with its `BUILD.md`, `RUNTIME-BUILD.md`, `VERSION.json` and
-`Licenses/` copied to [`doc/gametomac/`](doc/gametomac/).
+`Licenses/` copied to [`doc/upstream-source/`](doc/upstream-source/).
 
 ## License
 
 LGPL 2.1 — see [`COPYING.LIB`](COPYING.LIB) and [`LICENSE`](LICENSE).
 The complete corresponding source of every binary we distribute is this
 repository at the commit stamped in the pack's `MANIFEST.md` / `HASHES.txt`.
-Third-party notices bundled by GameToMac are in `doc/gametomac/Licenses/`.
+Third-party notices bundled with that source are in `doc/upstream-source/Licenses/`.
 
 ## Building (macOS, x86_64 under Rosetta)
 
-Follow [`doc/gametomac/RUNTIME-BUILD.md`](doc/gametomac/RUNTIME-BUILD.md)
+Follow [`doc/upstream-source/RUNTIME-BUILD.md`](doc/upstream-source/RUNTIME-BUILD.md)
 (section "Wine and helper"). The exact scripts used for our build are in
 [`build-macos/`](build-macos/):
 
@@ -62,5 +62,5 @@ and the launcher sets `DYLD_LIBRARY_PATH` accordingly.
 
 ## Not upstream
 
-Nothing here is submitted upstream (WineHQ, CodeWeavers or GameToMac).
+Nothing here is submitted upstream (WineHQ, CodeWeavers or the patch author).
 No public git remote is configured on purpose.

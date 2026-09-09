@@ -64,3 +64,7 @@ and the launcher sets `DYLD_LIBRARY_PATH` accordingly.
 
 Nothing here is submitted upstream (WineHQ, CodeWeavers or the patch author).
 No public git remote is configured on purpose.
+
+## Support
+
+This build is part of the free, open AoE IV pack for Apple Silicon; see [`DONATE.md`](DONATE.md).

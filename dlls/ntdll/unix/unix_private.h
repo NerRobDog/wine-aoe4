@@ -733,4 +733,17 @@ static inline int is_gdt_sel( WORD sel )
 
 #endif  /* defined(__i386__) || defined(__x86_64__) */
 
+/* NerRobDog 2026-09-09: BOOLEAN syscall arguments reach the Unix side straight from the
+ * PE caller's registers/stack slots. PE code built with clang for the MS ABI only writes
+ * the low byte of a BOOLEAN, while the Unix side built with Apple clang assumes the caller
+ * zero-extended small integers and tests the whole 32-bit register. Whatever was left above
+ * bit 7 (a stack address, typically) then reads as TRUE: NtQueryDirectoryObject restarted
+ * its scan on every call and kernelbase's GetLogicalDrives spun forever inside Steam's
+ * hardware survey. Force a real byte zero-extension before using such an argument. */
+static inline unsigned int syscall_bool( unsigned int v )
+{
+    __asm__ __volatile__( "movzbl %b0, %0" : "+r"(v) );
+    return v;
+}
+
 #endif /* __NTDLL_UNIX_PRIVATE_H */

@@ -2081,7 +2081,7 @@ NTSTATUS WINAPI NtQueryDirectoryObject( HANDLE handle, DIRECTORY_BASIC_INFORMATI
                                         ULONG *context, ULONG *ret_size )
 {
     unsigned int status, i, count, total_len, pos, used_size, used_count, strpool_head;
-    ULONG index = restart ? 0 : *context;
+    ULONG index = syscall_bool( restart ) ? 0 : *context;
     struct directory_entry *entries;
 
     if (!(entries = malloc( size ))) return STATUS_NO_MEMORY;
@@ -2090,7 +2090,7 @@ NTSTATUS WINAPI NtQueryDirectoryObject( HANDLE handle, DIRECTORY_BASIC_INFORMATI
     {
         req->handle = wine_server_obj_handle( handle );
         req->index = index;
-        req->max_count = single_entry ? 1 : UINT_MAX;
+        req->max_count = syscall_bool( single_entry ) ? 1 : UINT_MAX;
         wine_server_set_reply( req, entries, size );
         status = wine_server_call( req );
         count = reply->count;

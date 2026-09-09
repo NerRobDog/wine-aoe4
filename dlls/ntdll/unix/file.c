@@ -2868,6 +2868,9 @@ NTSTATUS WINAPI NtQueryDirectoryFile( HANDLE handle, HANDLE event, PIO_APC_ROUTI
           length, info_class, single_entry, debugstr_us(mask),
           restart_scan);
 
+    single_entry = syscall_bool( single_entry );
+    restart_scan = syscall_bool( restart_scan );
+
     if (event || apc_routine)
     {
         FIXME( "Unsupported yet option\n" );

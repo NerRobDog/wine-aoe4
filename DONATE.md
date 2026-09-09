@@ -1,8 +1,11 @@
 # Support
 
 Everything here is free and open source, built and tested on my own Macs. If it saved you a
-licence or an evening, you can send something back. Card and PayPal processors are not available
-in my country, so it is crypto for now:
+licence or an evening, you can send something back.
+
+**Card (Visa/Mastercard, any country, via Telegram):** https://web.tribute.tg/d/Qas
+
+Crypto (the usual card processors are not available in my country):
 
 | Network | Address |
 |---|---|

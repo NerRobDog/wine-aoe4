@@ -1,0 +1,12 @@
+# build products live out of tree (see build-macos/); never commit them
+/build/
+/prefix/
+*.o
+*.a
+*.so
+*.dll
+*.exe
+*.log
+*.tar.gz
+.DS_Store
+._*

@@ -433,6 +433,7 @@ static const struct column col_processor[] =
     { L"Revision",                  CIM_UINT16 },
     { L"UniqueId",                  CIM_STRING },
     { L"Version",                   CIM_STRING|COL_FLAG_DYNAMIC },
+    { L"VirtualizationFirmwareEnabled", CIM_BOOLEAN },
 };
 static const struct column col_qualifier[] =
 {
@@ -1018,6 +1019,7 @@ struct record_processor
     UINT16       revision;
     const WCHAR *unique_id;
     const WCHAR *version;
+    int          virtualizationfirmwareenabled;
 };
 struct record_qualifier
 {
@@ -4011,6 +4013,7 @@ static enum fill_status fill_processor( struct table *table, const struct expr *
         rec->processortype          = proc->type;
         rec->revision               = info.ProcessorRevision;
         rec->version                = wcsdup( version );
+        rec->virtualizationfirmwareenabled = 0;
         if (!match_row( table, i, cond, &status ))
         {
             free_row_values( table, i );

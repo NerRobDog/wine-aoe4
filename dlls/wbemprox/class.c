@@ -399,6 +399,12 @@ static HRESULT WINAPI class_object_Get(
 
     TRACE( "%p, %s, %#lx, %p, %p, %p\n", iface, debugstr_w(wszName), lFlags, pVal, pType, plFlavor );
 
+    /* NerRobDog 2026-09-09: never hand back an uninitialized VARIANT for an unknown
+     * property. Steam's hardware survey asks Win32_Processor for properties Wine
+     * does not model and then inspects the VARIANT regardless of the HRESULT; with
+     * stack garbage in it the client hangs its connection-manager job forever. */
+    if (pVal) V_VT( pVal ) = VT_NULL;
+
     if (co->record)
     {
         UINT index;

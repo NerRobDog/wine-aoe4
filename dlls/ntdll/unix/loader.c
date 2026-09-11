@@ -2646,23 +2646,22 @@ static void check_command_line( int argc, char *argv[] )
  * Main entry point called by the wine loader.
  */
 #if defined(__APPLE__) && defined(__x86_64__)
-static void aoe_reexec_sidecar(int argc, char **argv)
+/* The PE file name the loader was asked to run, without any directory. */
+static const char *aoe_exe_name(char **argv)
 {
-    const char *sidecar=getenv("AOELAB_SIDECAR_PATH"),*loader=getenv("WINELOADER");
-    const char *name,*slash;
-    char **args;
-    unsigned int i;
-    if (!getenv("AOELAB_SOFTFAULT_GAME") || !sidecar || sidecar[0]!='/' || !loader || argc<2 || getenv("X87_SIDECAR_BOOTSTRAP")) return;
-    name=argv[1];
+    const char *name=argv[1],*slash;
     if ((slash=strrchr(name,'/'))) name=slash+1;
     if ((slash=strrchr(name,'\\'))) name=slash+1;
-    if (strcasecmp(name,"RelicCardinal.exe")) return;
-    setenv("AOELAB_SOFTFAULT_BRIDGE","1",1);
-    setenv("AOE_SOFTFAULT_PC","0x140001000",1);
-    setenv("AOE_SOFTFAULT_END","0x1456ddadc",1);
-    setenv("AOE_SOFTFAULT_TARGET1","0x180000000",1);
-    setenv("AOE_SOFTFAULT_TARGET","0x180000010",1);
-    setenv("X87_ALWAYS_NONE","1",1);
+    return name;
+}
+
+/* Hand the process to the sidecar, which gives it back once the cooperative
+ * bootstrap has the task port. Shared by both profiles below so that the exec
+ * line cannot drift between them. */
+static void aoe_exec_sidecar(const char *sidecar, const char *loader, int argc, char **argv)
+{
+    char **args;
+    unsigned int i;
     args=calloc(argc+3,sizeof(*args));
     if (!args) fatal_error("cannot allocate software fault launch arguments\n");
     args[0]=(char *)sidecar;args[1]="--cooperative";args[2]=(char *)loader;
@@ -2672,6 +2671,31 @@ static void aoe_reexec_sidecar(int argc, char **argv)
     unsetenv("WINELOADERNOEXEC");
     execv(sidecar,args);
     fatal_error("cannot launch software fault translator: %s\n",strerror(errno));
+}
+
+static void aoe_reexec_sidecar(int argc, char **argv)
+{
+    const char *sidecar=getenv("AOELAB_SIDECAR_PATH"),*loader=getenv("WINELOADER");
+    const char *coop;
+    if (!sidecar || sidecar[0]!='/' || !loader || argc<2 || getenv("X87_SIDECAR_BOOTSTRAP")) return;
+    /* Age of Empires IV, first and unchanged. A released pack runs this path, so
+     * it has to keep behaving exactly as it did: same gate, same variables, same
+     * exec. Everything specific to that game stays inside this branch. */
+    if (getenv("AOELAB_SOFTFAULT_GAME") && !strcasecmp(aoe_exe_name(argv),"RelicCardinal.exe"))
+    {
+        setenv("AOELAB_SOFTFAULT_BRIDGE","1",1);
+        setenv("AOE_SOFTFAULT_PC","0x140001000",1);
+        setenv("AOE_SOFTFAULT_END","0x1456ddadc",1);
+        setenv("AOE_SOFTFAULT_TARGET1","0x180000000",1);
+        setenv("AOE_SOFTFAULT_TARGET","0x180000010",1);
+        setenv("X87_ALWAYS_NONE","1",1);
+        aoe_exec_sidecar(sidecar,loader,argc,argv);
+    }
+    /* Any other game names its own executable and sets whatever else it needs
+     * itself; the engine sets nothing. A second hard-coded name here would only
+     * move this same conversation to the third game. */
+    if ((coop=getenv("X87_COOP_EXE")) && *coop && !strcasecmp(aoe_exe_name(argv),coop))
+        aoe_exec_sidecar(sidecar,loader,argc,argv);
 }
 #endif
 

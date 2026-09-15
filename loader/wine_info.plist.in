@@ -7,13 +7,13 @@
     <key>CFBundleDevelopmentRegion</key>
     <string>English</string>
     <key>CFBundleExecutable</key>
-    <string>wineloader</string><!-- CrossOver Hack 10913 -->
+    <string>wineloader</string>
     <key>CFBundleIdentifier</key>
-    <string>com.codeweavers.CrossOver.wineloader</string><!-- CrossOver Hack 10913 -->
+    <string>io.github.nerrobdog.wine.loader</string>
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>CFBundleName</key>
-    <string>CrossOver-Hosted Application</string><!-- CrossOver Hack 10913 -->
+    <string>Wine</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>

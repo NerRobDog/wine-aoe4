@@ -779,6 +779,8 @@ static NSString* WineLocalizedString(unsigned int stringID)
 
         [wineWindows release];
 
+        [self updateSafeAreaFillers:active];
+
         // The above took care of the visible windows on the current space.  That
         // leaves windows on other spaces, minimized windows, and windows which
         // are not ordered in.  We want to leave windows on other spaces alone
@@ -806,6 +808,80 @@ static NSString* WineLocalizedString(unsigned int stringID)
                 if (newLevel != origLevel)
                     [window setLevel:newLevel];
             }
+        }
+    }
+
+    /* The strip macOS keeps for the camera notch is not covered by a full-screen
+     * game that stays out of it, and what shows through there is the menu bar.
+     * Fill it with a black window of our own, the way a native full-screen app
+     * gets a black bar across the notch. One per screen, made when first needed
+     * and kept afterwards; it takes no events and joins every space, so it does
+     * not disturb what the game is doing. */
+    - (void) updateSafeAreaFillers:(BOOL)active
+    {
+        if (!safeAreaFillers)
+            safeAreaFillers = [[NSMutableDictionary alloc] init];
+
+        for (NSScreen* screen in [NSScreen screens])
+        {
+            CGFloat notch = 0;
+            NSNumber* key;
+            NSWindow* filler;
+            BOOL wanted = FALSE;
+
+            if (@available(macOS 12.0, *))
+                notch = [screen safeAreaInsets].top;
+
+            key = [[screen deviceDescription] objectForKey:@"NSScreenNumber"];
+            if (!key) continue;
+            filler = [safeAreaFillers objectForKey:key];
+
+            if (active && notch > 0)
+            {
+                for (NSWindow* window in [NSApp windows])
+                {
+                    if ([window isKindOfClass:[WineWindow class]] && [window isVisible] &&
+                        ((WineWindow*)window).fullscreen && [window screen] == screen)
+                    {
+                        wanted = TRUE;
+                        break;
+                    }
+                }
+            }
+
+            if (wanted)
+            {
+                if (!filler)
+                {
+                    NSRect frame = [screen frame];
+
+                    frame.origin.y = NSMaxY(frame) - notch;
+                    frame.size.height = notch;
+
+                    filler = [[NSWindow alloc] initWithContentRect:frame
+                                                         styleMask:NSWindowStyleMaskBorderless
+                                                           backing:NSBackingStoreBuffered
+                                                             defer:NO];
+                    [filler setBackgroundColor:[NSColor blackColor]];
+                    [filler setOpaque:YES];
+                    [filler setHasShadow:NO];
+                    [filler setIgnoresMouseEvents:YES];
+                    [filler setReleasedWhenClosed:NO];
+                    [filler setCollectionBehavior:NSWindowCollectionBehaviorCanJoinAllSpaces |
+                                                  NSWindowCollectionBehaviorStationary |
+                                                  NSWindowCollectionBehaviorIgnoresCycle];
+                    [safeAreaFillers setObject:filler forKey:key];
+                    [filler release];
+                }
+
+                /* Above the level a full-screen Wine window gets, so the strip
+                 * stays covered while the game is in front. */
+                [filler setLevel:NSStatusWindowLevel + 2];
+                if (![filler isVisible])
+                    [filler orderFront:nil];
+            }
+            else if (filler && [filler isVisible])
+                [filler orderOut:nil];
         }
     }
 

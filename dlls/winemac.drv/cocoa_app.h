@@ -72,6 +72,9 @@ enum {
 
     NSMutableDictionary* originalDisplayModes;
     NSMutableDictionary* latentDisplayModes;
+    /* One black window per screen, filling the strip macOS keeps for the camera
+     * notch while a full-screen game stays out of it. Keyed by screen number. */
+    NSMutableDictionary* safeAreaFillers;
     BOOL displaysCapturedForFullscreen;
     BOOL displaysTemporarilyUncapturedForDialog;
     BOOL temporarilyIgnoreResignEventsForDialog;

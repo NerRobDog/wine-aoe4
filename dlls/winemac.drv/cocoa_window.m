@@ -79,12 +79,36 @@ static BOOL frame_intersects_screens(NSRect frame, NSArray* screens)
 }
 
 
+/* A window counts as full-screen when it covers a whole screen, and that is what
+ * puts it above the Dock and the menu bar. On a Mac with a camera notch there is
+ * a second way to fill the screen: cover everything below the strip macOS keeps
+ * for the notch. A game told to stay out of that strip - which is what our packs
+ * do, because a HUD drawn under the notch loses its top - would otherwise stop
+ * being full-screen by this test, and the Dock would draw over its lower edge
+ * while the menu bar sat above it. So that shape counts too; the strip itself is
+ * filled by the driver (WineApplicationController updateSafeAreaFillers). */
 static NSScreen* screen_covered_by_rect(NSRect rect, NSArray* screens)
 {
     for (NSScreen* screen in screens)
     {
-        if (NSContainsRect(rect, [screen frame]))
+        NSRect frame = [screen frame];
+
+        if (NSContainsRect(rect, frame))
             return screen;
+
+        if (@available(macOS 12.0, *))
+        {
+            CGFloat notch = [screen safeAreaInsets].top;
+
+            /* Screen coordinates grow upwards, so the strip is the top of the
+             * frame and dropping it is a plain reduction in height. */
+            if (notch > 0)
+            {
+                frame.size.height -= notch;
+                if (NSContainsRect(rect, frame))
+                    return screen;
+            }
+        }
     }
     return nil;
 }

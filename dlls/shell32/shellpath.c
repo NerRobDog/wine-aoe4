@@ -2632,8 +2632,13 @@ static HRESULT _SHExpandEnvironmentStrings(LPCWSTR szSrc, LPWSTR szDest)
         }
         else if (!wcsnicmp(szTemp, L"%USERPROFILE%", lstrlenW(L"%USERPROFILE%")))
         {
-            /* CrossOver Hack 12735 */
-            static const WCHAR userName[] = {'c','r','o','s','s','o','v','e','r',0};
+            /* The profile directory is named after the constant profile name
+             * advapi32 hands out (from CrossOver Hack 12735), not after the
+             * account running the game, so a prefix survives being moved. */
+            WCHAR userName[256];
+            DWORD userNameLen = ARRAY_SIZE(userName);
+
+            if (!GetUserNameW(userName, &userNameLen)) lstrcpyW(userName, L"satoru");
 
             lstrcpyW(szDest, szProfilesPrefix);
             PathAppendW(szDest, userName);

@@ -40,6 +40,13 @@
 
 WINE_DEFAULT_DEBUG_CHANNEL(advapi);
 
+/* The profile name every prefix of ours is built around. It is deliberately
+ * not the account name of whoever runs the game: a prefix made on one machine
+ * has to keep working when it is moved to another. shell32 asks GetUserNameW
+ * for it rather than keeping a second copy of the string. */
+#define DEFAULT_USER_NAMEA  "satoru"
+#define DEFAULT_USER_NAMEW  L"satoru"
+
 /******************************************************************************
  * GetUserNameA [ADVAPI32.@]
  */
@@ -48,17 +55,19 @@ BOOL WINAPI GetUserNameA( LPSTR name, LPDWORD size )
     DWORD len = GetEnvironmentVariableA( "WINEUSERNAME", name, *size );
     BOOL ret;
 
-    /* CrossOver Hack 12735: Use a consistent username */
-    if (!getenv( "CX_REPORT_REAL_USERNAME" ))
+    /* One constant profile name, so a prefix stays portable between machines
+     * and accounts (from CrossOver Hack 12735, with our own name). ntdll puts
+     * the account's own name in WINEUSERNAME on every start, so this cannot be
+     * an "if unset" default; WINE_REAL_USERNAME asks for that name instead. */
+    if (!getenv( "WINE_REAL_USERNAME" ))
     {
-        len = sizeof("crossover");
-        if ((ret = (len <= *size))) strcpy( name, "crossover" );
+        len = sizeof(DEFAULT_USER_NAMEA);
+        if ((ret = (len <= *size))) strcpy( name, DEFAULT_USER_NAMEA );
         else SetLastError( ERROR_INSUFFICIENT_BUFFER );
         *size = len;
         return ret;
     }
 
-    if (!len) return FALSE;
     if ((ret = (len < *size))) len++;
     else SetLastError( ERROR_INSUFFICIENT_BUFFER );
     *size = len;
@@ -73,17 +82,16 @@ BOOL WINAPI GetUserNameW( LPWSTR name, LPDWORD size )
     DWORD len = GetEnvironmentVariableW( L"WINEUSERNAME", name, *size );
     BOOL ret;
 
-    /* CrossOver Hack 12735: Use a consistent username */
-    if (!getenv( "CX_REPORT_REAL_USERNAME" ))
+    /* See GetUserNameA above. */
+    if (!getenv( "WINE_REAL_USERNAME" ))
     {
-        len = ARRAY_SIZE( L"crossover" );
-        if ((ret = (len <= *size))) wcscpy( name, L"crossover" );
+        len = ARRAY_SIZE( DEFAULT_USER_NAMEW );
+        if ((ret = (len <= *size))) wcscpy( name, DEFAULT_USER_NAMEW );
         else SetLastError( ERROR_INSUFFICIENT_BUFFER );
         *size = len;
         return ret;
     }
 
-    if (!len) return FALSE;
     if ((ret = (len < *size))) len++;
     else SetLastError( ERROR_INSUFFICIENT_BUFFER );
     *size = len;

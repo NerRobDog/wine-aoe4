@@ -840,8 +840,14 @@ static NSString* WineLocalizedString(unsigned int stringID)
             {
                 for (NSWindow* window in [NSApp windows])
                 {
+                    /* Only a window that leaves the strip uncovered gets a filler.
+                     * A full-screen window that spans the whole frame draws in the
+                     * strip itself, and a filler above it would hide the top of the
+                     * game while the cursor, which passes through the filler, still
+                     * reaches it. */
                     if ([window isKindOfClass:[WineWindow class]] && [window isVisible] &&
-                        ((WineWindow*)window).fullscreen && [window screen] == screen)
+                        ((WineWindow*)window).fullscreen && [window screen] == screen &&
+                        NSMaxY([window frame]) <= NSMaxY([screen frame]) - notch + 0.5)
                     {
                         wanted = TRUE;
                         break;
